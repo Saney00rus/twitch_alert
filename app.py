@@ -29,24 +29,24 @@ def show_stats(nickname):
         return "Нет данных для этого никнейма"
 
 def get_info(name):
-    url = f"http://api.faceit.myhosting.info:81/?n={name}"
-    response = requests.get(url)
-
+    url = f"https://open.faceit.com/data/v4/players?nickname={name}"
+    response = requests.get(url, headers={"Authorization": "Bearer 1573f37d-ed29-41b6-91d6-bf0be8846cf9"})
     if response.status_code == 200:
         data = response.json()
-        last_match = data['last_match']
-        elo = data["elo"]
-        elo_match = last_match.split()[13]
-        last_elo = int(elo) - int(elo_match)
-        kill = last_match.split()[5].split('/')[0]
-        deaths = last_match.split()[5].split('/')[2]
-        kd = last_match.split()[7]
-        kr1 = re.sub(r"[(),]", "", last_match.split()[3]).split(":")
-        kr = round(int(kill) / (int(kr1[0]) + int(kr1[1])), 2)
+        player_id = data['player_id']
+        elo = data["games"]["cs2"]["faceit_elo"]
+        url1 = f"https://open.faceit.com/data/v4/players/{player_id}/games/cs2/stats?offset=0&limit=1"
+        response1 = requests.get(url1, headers={"Authorization": "Bearer 1573f37d-ed29-41b6-91d6-bf0be8846cf9"})
+        if response1.status_code == 200:
+            data = response1.json()
+            stats = data['items'][0]['stats']
+            print("ELO:", elo)
+            print("K/D Ratio:", stats['K/D Ratio'])
+            print("K/R Ratio:", stats['K/R Ratio'])
+            print("Kills:", stats['Kills'])
+            print("Deaths:", stats['Deaths'])
 
-        res = {'nickname': name, 'last_elo': last_elo, 'elo': elo, 'elo_match': elo_match, 'kill': kill,
-               'deaths': deaths, 'kd': kd, 'kr': kr}
-        return res
+
 
     else:
         print("Ошибка при выполнении запроса:", response.status_code)
@@ -77,7 +77,7 @@ def main(data):
             for a in d['roster']:
                 if a['nickname'] in nicknames:
                     res = get_info(a['nickname'])
-                    return prnt_res(res)
+                    # return prnt_res(res)
 
 
 if __name__ == '__main__':

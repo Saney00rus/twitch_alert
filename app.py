@@ -1,9 +1,11 @@
 import sqlite3
 import requests
-from flask import Flask, request
+from flask import Flask, request, render_template
+from flask_socketio import SocketIO
+
 
 app = Flask(__name__)
-
+socketio = SocketIO(app)
 
 def get_users():
     nicknames = []
@@ -40,6 +42,10 @@ def get_elo(id):
     return elo[0]
 
 
+def send_data_to_frontend(data):
+    socketio.emit('update_data', data)
+
+
 @app.route('/receive_post', methods=['POST'])
 def receive_post():
     if request.method == 'POST':
@@ -50,6 +56,14 @@ def receive_post():
         return "POST запрос успешно получен и обработан"
     else:
         return "Метод не поддерживается"
+
+
+@app.route('/<nickname>')
+def player_stats(nickname):
+    if request.method == 'GET':
+        data_to_send = get_info(nickname)
+        return render_template('player_stats.html', playerData=data_to_send)
+
 
 
 def get_info(name):
@@ -71,6 +85,17 @@ def get_info(name):
             last_elo = get_elo(player_id)
             elo_per_match = int(elo) - int(last_elo)
 
+            data_to_send = {
+                'nickname': name,
+                'last_elo': last_elo,
+                'elo_per_match': elo_per_match,
+                'elo_now': elo,
+                'kd_ratio': kd,
+                'kr_ratio': kr,
+                'kills': kills,
+                'deaths': death
+            }
+            send_data_to_frontend(data_to_send)
             refresh_elo(player_id, elo)
 
             print("NICKNAME:", name)
@@ -84,6 +109,7 @@ def get_info(name):
             print("Deaths:", death)
             print("\n")
 
+            return data_to_send
     else:
         print("Ошибка при выполнении запроса:", response.status_code)
 
@@ -94,6 +120,16 @@ def main(data):
             for a in d['roster']:
                 if a['nickname'] in get_users():
                     get_info(a['nickname'])
+
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
 
 
 if __name__ == '__main__':

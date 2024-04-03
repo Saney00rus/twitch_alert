@@ -1,13 +1,14 @@
-import datetime
 import sqlite3
 import requests
 from flask import Flask, request
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 
+def send_data_to_frontend(data):
+    socketio.emit('update_data', data)
 
 def get_users():
-
     nicknames = []
     conn = sqlite3.connect('players.db')
     cursor = conn.cursor()
@@ -46,22 +47,12 @@ def get_elo(id):
 def receive_post():
     if request.method == 'POST':
         data = request.get_json()
-        print("\nПолучен POST запрос\n")
-        print(data)
-        print("\n\n")
+        print("Получен POST запрос\n")
         main(data)
 
         return "POST запрос успешно получен и обработан"
     else:
         return "Метод не поддерживается"
-
-@app.route('/<nickname>', methods=['GET'])
-def show_stats(nickname):
-    if nickname in get_users():
-        res = get_info(nickname)
-        return prnt_res(res)
-    else:
-        return "Нет данных для этого никнейма"
 
 
 def get_info(name):
@@ -83,7 +74,7 @@ def get_info(name):
             last_elo = get_elo(player_id)
             elo_per_match = int(elo) - int(last_elo)
 
-            # refresh_elo(player_id, elo)
+            refresh_elo(player_id, elo)
 
             print("NICKNAME:", name)
             print("LAST ELO:", last_elo)
@@ -100,32 +91,12 @@ def get_info(name):
         print("Ошибка при выполнении запроса:", response.status_code)
 
 
-def prnt_res(res):
-    elo = res['elo']
-    last_elo = res['last_elo']
-    elo_match = res['elo_match']
-    kill = res['kill']
-    deaths = res['deaths']
-    kd = res['kd']
-    kr = res['kr']
-
-    return (f'{datetime.datetime.now()}\n'
-            f'LAST ELO: {last_elo} elo \n'
-            f'ELO PER GAME: {elo_match} elo\n'
-            f'NEW ELO: {elo} elo\n\n'
-            f'KILL: {kill}\n'
-            f'DEATHS: {deaths}\n'
-            f'K/D: {kd}\n'
-            f'K/R: {kr}\n')
-
-
 def main(data):
     if data["event"] == "match_status_finished":
         for d in data["payload"]["teams"]:
             for a in d['roster']:
                 if a['nickname'] in get_users():
-                    res = get_info(a['nickname'])
-                    # return prnt_res(res)
+                    get_info(a['nickname'])
 
 
 if __name__ == '__main__':

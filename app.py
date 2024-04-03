@@ -1,12 +1,9 @@
 import sqlite3
 import requests
 from flask import Flask, request
-from flask_socketio import SocketIO
 
 app = Flask(__name__)
 
-def send_data_to_frontend(data):
-    socketio.emit('update_data', data)
 
 def get_users():
     nicknames = []

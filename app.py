@@ -25,6 +25,23 @@ def get_users():
     return nicknames
 
 
+def refresh_elo(id, elo):
+    conn = sqlite3.connect('players.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE players SET elo = ? WHERE id = ?", (elo, id))
+    conn.commit()
+    conn.close()
+
+
+def get_elo(id):
+    conn = sqlite3.connect('players.db')
+    cursor = conn.cursor()
+    elo = cursor.execute("SELECT elo FROM players WHERE id = ?", (id,)).fetchone()
+    conn.commit()
+    conn.close()
+    return elo[0]
+
+
 @app.route('/receive_post', methods=['POST'])
 def receive_post():
     if request.method == 'POST':
@@ -32,7 +49,7 @@ def receive_post():
         print("\nПолучен POST запрос\n")
         print(data)
         print("\n\n")
-        print(main(data))
+        main(data)
 
         return "POST запрос успешно получен и обработан"
     else:
@@ -63,13 +80,21 @@ def get_info(name):
             kr = stats['K/R Ratio']
             kills = stats['Kills']
             death = stats['Deaths']
-            print("ELO:", elo)
+            last_elo = get_elo(player_id)
+            elo_per_match = int(elo) - int(last_elo)
+
+            # refresh_elo(player_id, elo)
+
+            print("NICKNAME:", name)
+            print("LAST ELO:", last_elo)
+            print("ELO PER MATCH:", elo_per_match)
+            print("ELO NOW:", elo)
+            print("\n")
             print("K/D Ratio:", kd)
             print("K/R Ratio:", kr)
             print("Kills:", kills)
             print("Deaths:", death)
-
-
+            print("\n")
 
     else:
         print("Ошибка при выполнении запроса:", response.status_code)

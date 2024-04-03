@@ -6,23 +6,16 @@ from flask import Flask, request
 app = Flask(__name__)
 
 
-
 def get_users():
 
     nicknames = []
-    # Подключение к базе данных (если базы данных не существует, она будет создана)
     conn = sqlite3.connect('players.db')
-
-    # Создание курсора для выполнения SQL-запросов
     cursor = conn.cursor()
-
-    # Создание таблицы players с тремя столбцами: id, name, elo
     cursor.execute('''CREATE TABLE IF NOT EXISTS players (
                         id TEXT PRIMARY KEY,
                         name TEXT,
                         elo INTEGER
                     )''')
-
     nicks = cursor.execute("SELECT name FROM players").fetchall()
     for nick in nicks:
         nicknames.append(nick[0])

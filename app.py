@@ -1,7 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#include "Python.h"
-#include "structmember.h"
-
 import sqlite3
 import requests
 from flask import Flask, request, render_template

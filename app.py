@@ -90,9 +90,9 @@ def get_info(name):
             data_to_send = {
                 'nickname': name,
                 'player_id': player_id,
-                'last_elo': last_elo,
-                'elo_per_match': elo_per_match,
-                'elo_now': elo,
+                'last_elo': str(last_elo),
+                'elo_per_match': str(elo_per_match),
+                'elo_now': str(elo),
                 'kd_ratio': kd,
                 'kr_ratio': kr,
                 'kills': kills,

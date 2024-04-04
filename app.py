@@ -2,10 +2,12 @@ import sqlite3
 import requests
 from flask import Flask, request, render_template
 from flask_socketio import SocketIO
+from flask_cors import CORS
 
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def get_users():
     nicknames = []
@@ -87,6 +89,7 @@ def get_info(name):
 
             data_to_send = {
                 'nickname': name,
+                'player_id': player_id,
                 'last_elo': last_elo,
                 'elo_per_match': elo_per_match,
                 'elo_now': elo,
@@ -95,23 +98,31 @@ def get_info(name):
                 'kills': kills,
                 'deaths': death
             }
-            send_data_to_frontend(data_to_send)
-            refresh_elo(player_id, elo)
-
-            print("NICKNAME:", name)
-            print("LAST ELO:", last_elo)
-            print("ELO PER MATCH:", elo_per_match)
-            print("ELO NOW:", elo)
-            print("\n")
-            print("K/D Ratio:", kd)
-            print("K/R Ratio:", kr)
-            print("Kills:", kills)
-            print("Deaths:", death)
-            print("\n")
 
             return data_to_send
     else:
         print("Ошибка при выполнении запроса:", response.status_code)
+
+def prnt_res(res):
+    name = res['nickname']
+    last_elo = res['last_elo']
+    elo_per_match = res['elo_per_match']
+    elo = res['elo_now']
+    kd = res['kd_ratio']
+    kr = res['kr_ratio']
+    kills = res['kills']
+    death = res['deaths']
+
+    print("NICKNAME:", name)
+    print("LAST ELO:", last_elo)
+    print("ELO PER MATCH:", elo_per_match)
+    print("ELO NOW:", elo)
+    print("\n")
+    print("K/D Ratio:", kd)
+    print("K/R Ratio:", kr)
+    print("Kills:", kills)
+    print("Deaths:", death)
+    print("\n")
 
 
 def main(data):
@@ -119,7 +130,12 @@ def main(data):
         for d in data["payload"]["teams"]:
             for a in d['roster']:
                 if a['nickname'] in get_users():
-                    get_info(a['nickname'])
+                    res = get_info(a['nickname'])
+                    id = res['player_id']
+                    elo = res['elo_now']
+                    refresh_elo(id, elo)
+                    send_data_to_frontend(res)
+                    prnt_res(res)
 
 
 @socketio.on('connect')

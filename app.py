@@ -1,13 +1,17 @@
+#define PY_SSIZE_T_CLEAN
+#include "Python.h"
+#include "structmember.h"
+
 import sqlite3
 import requests
 from flask import Flask, request, render_template
 from flask_socketio import SocketIO
 from flask_cors import CORS
 
-
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
 
 def get_users():
     nicknames = []
@@ -54,7 +58,6 @@ def receive_post():
         data = request.get_json()
         print("Получен POST запрос\n")
         main(data)
-
         return "POST запрос успешно получен и обработан"
     else:
         return "Метод не поддерживается"
@@ -65,7 +68,6 @@ def player_stats(nickname):
     if request.method == 'GET':
         data_to_send = get_info(nickname)
         return render_template('player_stats.html', playerData=data_to_send)
-
 
 
 def get_info(name):
@@ -102,6 +104,7 @@ def get_info(name):
             return data_to_send
     else:
         print("Ошибка при выполнении запроса:", response.status_code)
+
 
 def prnt_res(res):
     name = res['nickname']
@@ -149,4 +152,4 @@ def handle_disconnect():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

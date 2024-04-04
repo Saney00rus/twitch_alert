@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Stats</title>
+</head>
+<body>
+    <h1>Player Statistics: {{ nickname }}</h1>
+    <div>
+        <p>Last ELO: {{ playerData.last_elo }}</p>
+        <p>ELO per Match: {{ playerData.elo_per_match }}</p>
+        <p>Current ELO: {{ playerData.elo_now }}</p>
+        <p>K/D Ratio: {{ playerData.kd_ratio }}</p>
+        <p>K/R Ratio: {{ playerData.kr_ratio }}</p>
+        <p>Kills: {{ playerData.kills }}</p>
+        <p>Deaths: {{ playerData.deaths }}</p>
+    </div>
+</body>
+</html>
